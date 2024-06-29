@@ -4,6 +4,10 @@ use anchor_spl::{
     token::{Mint, Token, TokenAccount},
 };
 
+use mpl_token_metadata::{
+    pda::{find_master_edition_account, find_metadata_account},
+};
+
 //snip
 
 declare_id!("8yAcsThq873jkvpwU9M5iAJTGyrRJcsLTyPzhVRFAAif");
@@ -47,9 +51,22 @@ pub struct InitNFT<'info> {
         associated_token::authority = signer,
     )]
     pub associated_token_account: Account<'info, TokenAccount>,
+    /// CHECK - address
+    #[account(
+        mut,
+        address=find_metadata_account(&mint.key()).0,
+    )]
+    pub metadata_account: AccountInfo<'info>,
+    /// CHECK - address
+    #[account(
+        mut,
+        address=find_master_edition_account(&mint.key()).0,
+    )]
+    pub master_edition_account: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_metadata_program: Program<'info, TokenMetadata>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>    
 }
