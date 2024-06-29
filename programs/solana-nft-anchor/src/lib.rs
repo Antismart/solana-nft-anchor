@@ -12,8 +12,17 @@ declare_id!("8yAcsThq873jkvpwU9M5iAJTGyrRJcsLTyPzhVRFAAif");
 pub mod solana_nft_anchor {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
+    pub fn init_nft(ctx: Context<InitNFT>) -> Result<()> {
+        //create mint account
+        let cpi_context = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint:ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.associated_token_account.to_account_info(),
+                authority: ctx.accounts.signer.to_account_info(),
+            },
+        );
+        mint_to(cpi_context, 1)?;
         Ok(())
     }
 }
