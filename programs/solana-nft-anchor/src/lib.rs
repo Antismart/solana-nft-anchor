@@ -3,11 +3,67 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{Mint, Token, TokenAccount},
 };
-
+//snip
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    metadata::{
+        create_master_edition_v3, create_metadata_accounts_v3, createMaster_edition_v3,
+        CreateMetadataAccountsV3, Metadata, MetadataAccount,
+    },
+    token::{mint_to, Mint, MintTo, Token, TokenAccount},
+};
 use mpl_token_metadata::{
     pda::{find_master_edition_account, find_metadata_account},
+    state::DataV2
 };
 
+//snip
+
+pub fn init_nft(
+    ctx: Context<InitNFT>,
+    name: String,
+    symbol: String,
+    uri: String,
+) -> Result<()> {
+    let cpi_context = CpiContext::new(
+        ctx.accounts.token_program.to_account_info(),
+        MintTo {
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.associated_token_account.to_account_info(),
+            authority: ctx.accounts.signer.to_account_info(),
+        },
+    );
+
+    mint_to(cpi_context, 1)?;
+
+    //create metadata account
+    let cpi_context = CpiContext::new(
+        ctx.accounts.token_metadata_program.to_account_info(),
+        CreateMetadataAccountsV3 {
+            metadata: ctx.accounts.metadata_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            mint_authority: ctx.accounts.signer.to_account_info(),
+            update_authority: ctx.accounts.signer.to_account_info(),
+            payer: ctx.accounts.signer.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            rent: ctx.accounts.rent.to_account_info(),
+        },
+    );
+
+    let data_v2 = DataV2 {
+        name: name,
+        symbol: symbol,
+        uri: uri,
+        creators: None,
+        seller_fee_basis_points: 0,
+        collection: None,
+        uses: None,
+    };
+
+    create_metadata_accounts_v3(cpi_context, data_v2, false, true, None)?;
+
+    ok(())
+}
 //snip
 
 declare_id!("8yAcsThq873jkvpwU9M5iAJTGyrRJcsLTyPzhVRFAAif");
